@@ -3,11 +3,16 @@ import itchat, time
 import requests
 from itchat.content import *
 from picamera import PiCamera
+from random import randint
+import re
 
 KEY = '8edce3ce905a4c1dbb965e6b35c3834d'
 
+bad_word = ['臣服吧愚蠢的人类', 'MDZZ', '哈哈哈你猜不到的', '别试了没用的,傻子']
+
+send_to_all = '不来试试新功能吗[嘿哈]'
+
 def get_response(msg):
-    # 这里我们就像在“3. 实现最简单的与图灵机器人的交互”中做的一样
     # 构造了要发送给服务器的数据
     apiUrl = 'http://www.tuling123.com/openapi/api'
     data = {
@@ -24,7 +29,7 @@ def get_response(msg):
     except:
         # 将会返回一个None
         return
-def take_photo():
+def take_photo():#拍照函数
     try:
         camera = PiCamera()
         camera.capture('image.jpg')
@@ -34,7 +39,7 @@ def take_photo():
     else:
         return 1
 
-def record_video():
+def record_video():#录像函数
     try:
         camera = PiCamera()
         camera.resolution = (640, 480)
@@ -51,14 +56,22 @@ def camera_close():
     camera = PiCamera()
     camera.close()
     return
- 
+
 @itchat.msg_register([TEXT, MAP, CARD, NOTE, SHARING])
 def tuling_reply(msg):
+    if (msg['Text'] == 'test'):
+        itchat.send(msg['FromUserName'], msg['FromUserName'])
+        return
+    if (msg['FromUserName'] == '@4b75dadd221918fd62d7ddcc0bb4e8de' and re.match('toall .*', msg['Text'])):
+        friendlist = itchat.get_friends(update = True)[1:]
+        for friend in friendlist:
+            itchat.send(msg['Text'][6:], friend['UserName'])
+            time.sleep(.5)
+        return
     if (msg['Text'] == 'photo'):
         if (take_photo() == 1):
             itchat.send_image('image.jpg', msg['FromUserName'])
             return
-            #return '@%s@%s' % ({'Picture': 'img', 'Video': 'vid'}.get(msg['Type'], 'fil'), 'image.png')
         else:
             return 'take_photo error'
     if (msg['Text'] == 'video'):
@@ -67,12 +80,10 @@ def tuling_reply(msg):
             return
         else:
             return 'record_video error'
-    if (msg['Text'] == 'test'):
-        #while(1):
-        take_photo()
-        return
-    if (msg['Text'] == '1'):
-        camera_close()
+    if (msg['Text'][0] != ' '):
+        index = randint(0,3) 
+        itchat.send('密码错误', msg['FromUserName'])
+        itchat.send(bad_word[index], msg['FromUserName'])
         return
     # 为了保证在图灵Key出现问题的时候仍旧可以回复，这里设置一个默认回复
     defaultReply = 'I received: ' + msg['Text']

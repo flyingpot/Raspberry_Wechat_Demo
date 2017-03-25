@@ -5,12 +5,11 @@ from itchat.content import *
 from picamera import PiCamera
 from random import randint
 import re
+import os
 
 KEY = '8edce3ce905a4c1dbb965e6b35c3834d'
 
 bad_word = ['臣服吧愚蠢的人类', 'MDZZ', '哈哈哈你猜不到的', '别试了没用的,傻子']
-
-send_to_all = '不来试试新功能吗[嘿哈]'
 
 def get_response(msg):
     # 构造了要发送给服务器的数据
@@ -96,8 +95,10 @@ def tuling_reply(msg):
 @itchat.msg_register([PICTURE, RECORDING, ATTACHMENT, VIDEO])
 def download_files(msg):
     msg['Text'](msg['FileName'])
-    #return msg['FileName']
-    return '@%s@%s' % ({'Picture': 'img', 'Video': 'vid'}.get(msg['Type'], 'fil'), msg['FileName'])
+    itchat.send_image(msg['FileName'], msg['FromUserName'])
+    os.system('rm %s' % (msg['FileName']))
+    #return '@%s@%s' % ({'Picture': 'img', 'Video': 'vid'}.get(msg['Type'], 'fil'), msg['FileName'])
+    return
 
 @itchat.msg_register(FRIENDS)
 def add_friend(msg):
